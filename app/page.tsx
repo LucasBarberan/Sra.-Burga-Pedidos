@@ -1,0 +1,58 @@
+"use client"
+
+import { useState } from "react"
+import { CategoryMenu } from "@/components/category-menu"
+import { ProductList } from "@/components/product-list"
+import { ProductDetail } from "@/components/product-detail"
+import { Cart } from "@/components/cart"
+import { CartProvider } from "@/components/cart-context"
+
+export default function Home() {
+  const [currentView, setCurrentView] = useState<"menu" | "category" | "product">("menu")
+  const [selectedCategory, setSelectedCategory] = useState<string>("")
+  const [selectedProduct, setSelectedProduct] = useState<any>(null)
+  const [showCart, setShowCart] = useState(false)
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category)
+    setCurrentView("category")
+  }
+
+  const handleProductSelect = (product: any) => {
+    setSelectedProduct(product)
+    setCurrentView("product")
+  }
+
+  const handleBack = () => {
+    if (currentView === "product") {
+      setCurrentView("category")
+    } else if (currentView === "category") {
+      setCurrentView("menu")
+    }
+  }
+
+  return (
+    <CartProvider>
+      <div className="min-h-screen bg-background">
+        {currentView === "menu" && (
+          <CategoryMenu onCategorySelect={handleCategorySelect} onCartClick={() => setShowCart(true)} />
+        )}
+
+        {currentView === "category" && (
+          <ProductList
+            category={selectedCategory}
+            onProductSelect={handleProductSelect}
+            onBack={handleBack}
+            onCartClick={() => setShowCart(true)}
+          />
+        )}
+
+        {currentView === "product" && selectedProduct && (
+          <ProductDetail product={selectedProduct} onBack={handleBack} onCartClick={() => setShowCart(true)} />
+        )}
+
+        {showCart && <Cart onClose={() => setShowCart(false)} />}
+      </div>
+    </CartProvider>
+  )
+}
