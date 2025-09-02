@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { CategoryMenu } from "@/components/category-menu"
-import { ProductList } from "@/components/product-list"
-import { ProductDetail } from "@/components/product-detail"
 import { Cart } from "@/components/cart"
 import { CartProvider } from "@/components/cart-context"
+import CategoryMenu from "@/components/category-menu"
+import { ProductDetail } from "@/components/product-detail"
+import { ProductList } from "@/components/product-list"
+import { useState } from "react"
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<"menu" | "category" | "product">("menu")

@@ -1,50 +1,52 @@
-"use client"
+// components/category-menu.tsx
+"use client";
 
-import { ShoppingCart } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useCart } from "@/components/cart-context"
+import { Button } from "@/components/ui/button";
+import { ShoppingCart } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+
+import { useCart } from "@/components/cart-context";
 
 interface CategoryMenuProps {
-  onCategorySelect: (category: string) => void
-  onCartClick: () => void
+  onCategorySelect: (categorySlug: string) => void;
+  onCartClick: () => void;
 }
 
-export function CategoryMenu({ onCategorySelect, onCartClick }: CategoryMenuProps) {
+type Category = {
+  id: number;
+  slug: string;
+  name: string;
+  image: string; // rutas como /rewards/free-burger.png que viven en /public
+};
+
+export default function CategoryMenu({ onCategorySelect, onCartClick }: CategoryMenuProps) {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const { getTotalItems } = useCart()
 
-  const categories = [
-    {
-      id: "hamburguesas-completas",
-      name: "HAMBURGUESAS CON PAPAS",
-      image: "/rewards/free-burger.png",
-    },
-    {
-      id: "hamburguesas-sin-papas",
-      name: "HAMBURGUESAS SIN PAPAS",
-      image: "/gourmet-burger-without-fries.png",
-    },
-    {
-      id: "bebidas",
-      name: "BEBIDAS",
-      image: "/refreshing-drinks-and-sodas.png",
-    },
-    {
-      id: "extras",
-      name: "EXTRAS",
-      image: "/burger-extras-and-sides.png",
-    },
-  ]
+  useEffect(() => {
+    const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    fetch(`${BASE}/categorias`)
+      .then(r => r.json())
+      .then(json => setCategories(json.data || []))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <p className="p-4">Cargando categorías…</p>;
 
   return (
     <div className="relative">
-      {/* Header */}
+      {/* Header estilo anterior */}
       <div className="bg-primary text-primary-foreground p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">Categorías</h1>
         <Button
           variant="ghost"
           size="sm"
           onClick={onCartClick}
+          /*className="rounded-full px-3 py-1 bg-primary-foreground/15 hover:bg-primary-foreground/25 transition"*/
           className="relative text-primary-foreground hover:bg-primary-foreground/20"
+          aria-label="Abrir carrito"
         >
           <ShoppingCart className="h-6 w-6" />
           {getTotalItems() > 0 && (
@@ -55,21 +57,35 @@ export function CategoryMenu({ onCategorySelect, onCartClick }: CategoryMenuProp
         </Button>
       </div>
 
-      {/* Categories Grid */}
+      {/* Tarjetas grandes en una sola columna */}
       <div className="p-4 space-y-4">
-        {categories.map((category) => (
+        {categories.map((cat) => (
           <div
-            key={category.id}
-            onClick={() => onCategorySelect(category.id)}
-            className="relative overflow-hidden rounded-xl cursor-pointer transform transition-transform active:scale-95"
+            key={cat.id}
+            onClick={() => onCategorySelect(cat.slug)}
+            className="relative overflow-hidden rounded-2xl cursor-pointer active:scale-[0.98] transition"
           >
-            <img src={category.image || "/placeholder.svg"} alt={category.name} className="w-full h-32 object-cover" />
+            {/* Imagen de fondo */}
+            <div className="relative h-40 sm:h-48">
+              <Image
+                src={cat.image || "/placeholder.png"}
+                alt={cat.name}
+                fill
+                sizes="(max-width: 640px) 100vw, 640px"
+                className="object-cover"
+                priority={false}
+              />
+            </div>
+
+            {/* Overlay y título centrado */}
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <h2 className="text-white text-lg font-bold text-center px-4">{category.name}</h2>
+              <h2 className="text-white text-lg sm:text-xl font-extrabold text-center px-4 drop-shadow">
+                {cat.name}
+              </h2>
             </div>
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }
